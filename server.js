@@ -1,8 +1,10 @@
-require('dotenv').config();
+const path = require('path');
+// Força a leitura do .env do diretório atual
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,14 +16,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/api/pix', async (req, res) => {
     console.log('--- Nova requisição PIX (Mangofy) ---');
     
-    // LOG DE SEGURANÇA (Vai aparecer no Render se a chave existe ou não)
-    console.log('API Key configurada:', process.env.MANGOFY_API_KEY ? 'SIM' : 'NÃO');
-    console.log('Store Code configurado:', process.env.MANGOFY_STORE_CODE ? 'SIM' : 'NÃO');
+    const apiKey = process.env.MANGOFY_API_KEY;
+    const storeCode = process.env.MANGOFY_STORE_CODE;
+
+    // Log para você ver no Render se o arquivo .env foi lido
+    console.log('Verificação de chaves no .env:');
+    console.log('- MANGOFY_API_KEY:', apiKey ? 'CARREGADA' : 'AUSENTE');
+    console.log('- MANGOFY_STORE_CODE:', storeCode ? 'CARREGADO' : 'AUSENTE');
+
+    if (!apiKey || !storeCode) {
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Chaves ausentes no arquivo .env. Verifique se o arquivo .env foi enviado ao GitHub.' 
+        });
+    }
 
     try {
         const { payer_name, amount } = req.body;
         
-        // Dados Padronizados
         const FIXED_CPF = '53347866860';
         const firstName = payer_name ? payer_name.trim().split(' ')[0] : 'Cliente';
         const amountInCents = Math.round(parseFloat(amount) * 100);
@@ -29,7 +41,7 @@ app.post('/api/pix', async (req, res) => {
         const payload = {
             amount: amountInCents,
             payment_method: 'pix',
-            store_code: process.env.MANGOFY_STORE_CODE,
+            store_code: storeCode,
             customer: {
                 name: firstName,
                 email: 'cliente@email.com',
@@ -51,9 +63,9 @@ app.post('/api/pix', async (req, res) => {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'x-api-key': process.env.MANGOFY_API_KEY // AQUI É ONDE O ERRO 401 ACONTECE SE ESTIVER VAZIO
+                'x-api-key': apiKey
             },
-            body: JSON.stringify(payload )
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
