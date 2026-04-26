@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: mangofy-checkout
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 3000
+      # As variáveis abaixo serão lidas do arquivo .env que você subir no GitHub
+      # Certifique-se de que o repositório seja PRIVADO.
