@@ -38,7 +38,7 @@ app.post("/api/pix", async (req, res) => {
             payment_format: "regular",
             installments: 1,
             payment_amount: amountInCents,
-            postback_url: process.env.POSTBACK_URL || "https://seusite.com/webhook",
+            postback_url: process.env.POSTBACK_URL || "https://simples-pay.onrender.com/",
             items: [
                 { 
                     name: "Pedido Online",
