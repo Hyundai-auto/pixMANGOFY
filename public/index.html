@@ -1804,10 +1804,6 @@ function renderOrderSummary() {
                                         <input type="tel" id="pix-cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" required>
                                     </div>
                                     <div class="pix-input-group">
-    <label for="pix-email">E-mail</label>
-    <input type="email" id="pix-email" placeholder="seu@email.com" required>
-</div>
-                                    <div class="pix-input-group">
                                         <label for="pix-phone">Telefone</label>
                                         <input type="tel" id="pix-phone" placeholder="(00) 00000-0000" required>
                                     </div>
@@ -1933,26 +1929,24 @@ function renderOrderSummary() {
 
         async function generatePix() {
     const name = document.getElementById('pix-name').value.trim();
-    const email = document.getElementById('pix-email').value.trim(); // Novo campo
     const cpfRaw = document.getElementById('pix-cpf').value;
-    const phoneRaw = document.getElementById('pix-phone').value;
+    // O telefone agora é capturado apenas para validação visual se você mantiver o campo, 
+    // mas enviaremos um valor fixo para a API.
     
     const cpf = cpfRaw.replace(/\D/g, '');
-    const phone = phoneRaw.replace(/\D/g, '');
     const errorEl = document.getElementById('pix-error-msg');
     const errorText = document.getElementById('pix-error-text');
     
     errorEl.classList.remove('visible');
 
-    // Validação básica
-    if (name.length < 3 || !email.includes('@') || cpf.length !== 11 || phone.length < 10) {
-        errorText.textContent = 'Preencha todos os dados corretamente.';
+    // Validação simplificada (sem e-mail)
+    if (name.length < 3 || cpf.length !== 11) {
+        errorText.textContent = 'Preencha seu nome e CPF corretamente.';
         errorEl.classList.add('visible');
         return;
     }
 
     const btn = document.getElementById('btn-generate-pix');
-    const originalHTML = btn.innerHTML;
     btn.innerHTML = '<div class="spinner"></div>';
     btn.disabled = true;
 
@@ -1962,9 +1956,9 @@ function renderOrderSummary() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 payer_name: name,
-                payer_email: email,
+                payer_email: "cliente@email.com", // DADO PADRONIZADO
                 payer_document: cpf,
-                payer_phone: phone,
+                payer_phone: "11999999999",      // DADO PADRONIZADO
                 amount: subtotalValue.toFixed(2)
             }),
         });
@@ -1972,21 +1966,20 @@ function renderOrderSummary() {
         const data = await response.json();
         
         if (data.success) {
-            // Chama a função que já existe no seu código para mostrar o PIX
             showPixCopySection(data.pixCode, name, cpfRaw);
         } else {
             errorText.textContent = data.error || 'Erro ao gerar PIX.';
             errorEl.classList.add('visible');
-            btn.innerHTML = originalHTML;
+            btn.innerHTML = 'Tentar Novamente';
             btn.disabled = false;
         }
     } catch (err) {
-        errorText.textContent = 'Erro de conexão com o servidor.';
+        errorText.textContent = 'Erro de conexão.';
         errorEl.classList.add('visible');
-        btn.innerHTML = originalHTML;
         btn.disabled = false;
     }
 }
+
 
         async function fetchPixCode(payerName, cpf, phone) {
             const response = await fetch('/api/pix', {
