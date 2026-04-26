@@ -19,54 +19,44 @@ app.post("/api/pix", async (req, res) => {
     const storeCode = process.env.MANGOFY_STORE_CODE ? process.env.MANGOFY_STORE_CODE.trim() : null;
 
     if (!apiKey || !storeCode) {
-        console.error("ERRO: Chaves não encontradas no .env");
-        return res.status(500).json({ success: false, error: "Chaves ausentes no .env" });
+        console.error("ERRO: Chaves não encontradas no ambiente");
+        return res.status(500).json({ success: false, error: "Chaves ausentes no servidor" });
     }
 
     try {
-        const { payer_name, amount } = req.body;
+        const { payer_name, amount, payer_document, payer_email, payer_phone } = req.body;
         const amountInCents = Math.round(parseFloat(amount) * 100);
 
-        // Gerar um external_code único (ex: timestamp + random string)
-        const externalCode = `PIX-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+        // Gerar um external_code único
+        const externalCode = `PIX-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
 
         const payload = {
             store_code: storeCode,
-            external_code: externalCode, // Adicionado external_code
+            external_code: externalCode,
             payment_method: "pix",
-            payment_format: "regular", // Adicionado payment_format
-            installments: 1, // Para PIX, o número de parcelas é 1
-            payment_amount: amountInCents, // Corrigido para payment_amount
-            postback_url: "https://seusite.com/webhook/mangofy", // Substitua pela sua URL de postback
+            payment_format: "regular",
+            installments: 1,
+            payment_amount: amountInCents,
+            postback_url: process.env.POSTBACK_URL || "https://seusite.com/webhook",
             items: [
                 { 
-                    name: "Produto Exemplo",
+                    name: "Pedido Online",
                     quantity: 1,
                     amount: amountInCents,
-                    description: "Descrição do Produto Exemplo"
+                    description: "Pagamento de pedido via checkout"
                 }
             ],
             customer: {
-                name: payer_name ? payer_name.trim().split(" ")[0] : "Cliente",
-                email: "cliente@email.com",
-                phone: "11999999999",
-                document: "53347866860",
-                ip: req.headers["x-forwarded-for"] || req.connection.remoteAddress || "127.0.0.1" // Adicionado customer.ip
+                name: payer_name || "Cliente",
+                email: payer_email || "cliente@email.com",
+                phone: payer_phone || "11999999999",
+                document: payer_document || "53347866860",
+                ip: req.headers["x-forwarded-for"] || req.connection.remoteAddress || "127.0.0.1"
             },
             pix: {
-                expires_in_days: 1 // Adicionado pix.expires_in_days
-            },
-            address: {
-                street: "Rua Exemplo",
-                number: "123",
-                zip_code: "01001000",
-                neighborhood: "Bairro",
-                city: "Sao Paulo",
-                state: "SP"
+                expires_in_days: 1
             }
         };
-
-        console.log("Enviando requisição com cabeçalhos Authorization e Store-Code...");
 
         const response = await fetch("https://checkout.mangofy.com.br/api/v1/payment", {
             method: "POST",
@@ -94,7 +84,7 @@ app.post("/api/pix", async (req, res) => {
 
     } catch (err) {
         console.error("Erro Crítico:", err);
-        return res.status(500).json({ success: false, error: "Erro interno." });
+        return res.status(500).json({ success: false, error: "Erro interno no servidor." });
     }
 });
 
