@@ -58,6 +58,8 @@ app.post("/api/pix", async (req, res) => {
             }
         };
 
+        console.log("Enviando payload para Mangofy...");
+        
         const response = await fetch("https://checkout.mangofy.com.br/api/v1/payment", {
             method: "POST",
             headers: {
@@ -70,21 +72,50 @@ app.post("/api/pix", async (req, res) => {
         });
 
         const data = await response.json();
+        console.log("Resposta da Mangofy recebida.");
 
         if (!response.ok) {
-            console.error("Erro Mangofy:", JSON.stringify(data, null, 2));
-            return res.status(response.status).json({ success: false, error: data.error || "Erro na Mangofy" });
+            console.error("Erro Mangofy (Status " + response.status + "):", JSON.stringify(data, null, 2));
+            return res.status(response.status).json({ success: false, error: data.message || "Erro na Mangofy" });
         }
 
+        // Log da resposta completa para depuração no Render
+        console.log("Dados da Resposta:", JSON.stringify(data, null, 2));
+
+        // Tenta extrair o código PIX de diferentes locais possíveis na resposta
+        let pixCode = null;
+        
+        if (data.pix && data.pix.qrcode_copy_and_paste) {
+            pixCode = data.pix.qrcode_copy_and_paste;
+        } else if (data.pix_code) {
+            pixCode = data.pix_code;
+        } else if (data.qrcode_copy_and_paste) {
+            pixCode = data.qrcode_copy_and_paste;
+        } else if (data.pix && typeof data.pix === 'string') {
+            pixCode = data.pix;
+        } else if (data.data && data.data.pix_code) {
+            pixCode = data.data.pix_code;
+        }
+
+        if (!pixCode) {
+            console.error("ERRO: Código PIX não encontrado na resposta da Mangofy.");
+            return res.status(500).json({ 
+                success: false, 
+                error: "Código PIX não gerado pela API.",
+                debug: data // Envia os dados para ajudar a identificar onde está o código
+            });
+        }
+
+        console.log("PIX gerado com sucesso!");
         return res.json({
             success: true,
-            pixCode: data.pix_code || data.qrcode_copy_and_paste,
-            orderId: data.id
+            pixCode: pixCode,
+            orderId: data.payment_code || data.id
         });
 
     } catch (err) {
-        console.error("Erro Crítico:", err);
-        return res.status(500).json({ success: false, error: "Erro interno no servidor." });
+        console.error("Erro Crítico no Servidor:", err);
+        return res.status(500).json({ success: false, error: "Erro interno no servidor: " + err.message });
     }
 });
 
