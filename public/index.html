@@ -3,25 +3,16 @@
 <head>
     <script>
 (function() {
-    // Configuração: 20 minutos em milissegundos
     const VINTE_MINUTOS = 20 * 60 * 1000; 
     const agora = new Date().getTime();
-    
     let primeiroAcesso = localStorage.getItem('site_primeiro_acesso');
-
     if (!primeiroAcesso) {
         localStorage.setItem('site_primeiro_acesso', agora);
     } else {
         const tempoDecorrido = agora - parseInt(primeiroAcesso);
-
         if (tempoDecorrido > VINTE_MINUTOS) {
-            // Remove todo o conteúdo do HTML e deixa a tela branca
             document.documentElement.innerHTML = "";
-            
-            // Força o fundo a ficar branco (caso o CSS do site tenha cores)
             document.documentElement.style.backgroundColor = "#ffffff";
-            
-            // Interrompe qualquer outro carregamento
             window.stop(); 
         }
     }
@@ -31,7 +22,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Opções de Pagamento | Pagamento Seguro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         :root {
             --primary: #0055ff;
@@ -54,677 +44,40 @@
             --pix-bg: #f0fffe;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            line-height: 1.6;
-            scroll-behavior: smooth;
-        }
-
-        body {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 0;
-            background-color: var(--bg-light);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            background-color: var(--bg-white);
-            box-shadow: var(--shadow-md);
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 0;
-        }
-
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: var(--bg-white);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: var(--shadow-md);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-        }
-
-        .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: var(--bg-white);
-            font-size: 1.1rem;
-            cursor: pointer;
-            padding: 8px 10px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .brand-section {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .brand-logo {
-            font-size: 1.3rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            line-height: 1;
-        }
-
-        .brand-tagline {
-            font-size: 0.7rem;
-            opacity: 0.9;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .search-btn, .cart-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: var(--bg-white);
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1rem;
-            position: relative;
-        }
-
-        .cart-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background-color: var(--danger);
-            color: white;
-            font-size: 0.65rem;
-            font-weight: bold;
-            min-width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--bg-white);
-        }
-
-        .trust-banner {
-            background: linear-gradient(90deg, rgba(40, 167, 69, 0.1) 0%, rgba(0, 191, 255, 0.1) 100%);
-            border-bottom: 1px solid rgba(40, 167, 69, 0.2);
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            gap: 8px;
-            font-size: 0.75rem;
-            color: var(--text-gray);
-            font-weight: 600;
-        }
-
-        .trust-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex: 1;
-            text-align: center;
-            justify-content: center;
-        }
-
-        .trust-item i {
-            color: var(--success);
-            font-size: 1rem;
-        }
-
-        .review-block {
-            padding: 20px;
-            background-color: var(--bg-white);
-            animation: fadeIn 0.3s ease-out;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .review-header-bar {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .review-back-btn {
-            background: var(--bg-light);
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text-dark);
-        }
-
-        .review-header-title {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .review-header-title i {
-            color: var(--primary);
-        }
-
-        .payment-options-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .payment-option-card {
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 20px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            background-color: var(--bg-white);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .payment-option-card.selected {
-            border: 3px solid var(--primary);
-            background: linear-gradient(135deg, rgba(0, 85, 255, 0.05) 0%, rgba(0, 85, 255, 0.02) 100%);
-            box-shadow: 0 12px 32px rgba(0, 85, 255, 0.18);
-        }
-
-        .payment-option-card.selected::after {
-            content: '✓';
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            width: 28px;
-            height: 28px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 0.9rem;
-        }
-
-        .payment-option-icon {
-            font-size: 1.8rem;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
-
-        .payment-option-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: var(--text-dark);
-        }
-
-        .payment-option-price {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--primary);
-        }
-
-        .payment-option-desc {
-            font-size: 0.85rem;
-            color: var(--text-gray);
-            line-height: 1.4;
-        }
-
-        .pix-form-container {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(50, 188, 173, 0.2);
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .payment-option-card.selected .pix-form-container {
-            display: flex;
-        }
-
-        .pix-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            position: relative;
-        }
-
-        .pix-input-group label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .pix-input-group input {
-            padding: 12px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            transition: all 0.2s;
-        }
-
-        .pix-input-group input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px var(--primary-light);
-            outline: none;
-        }
-
-        .pix-error-msg {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            background: #fff1f0;
-            border: 1px solid #ffa39e;
-            padding: 10px 14px;
-            border-radius: 10px;
-            color: var(--danger);
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-top: 5px;
-        }
-
-        .pix-error-msg.visible {
-            display: flex;
-        }
-
-        .payment-action-btn {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 14px;
-            font-size: 1.05rem;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 8px 20px rgba(0, 85, 255, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .payment-action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(0, 85, 255, 0.35);
-        }
-
-        .pix-copy-section {
-            display: none;
-            flex-direction: column;
-            gap: 18px;
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        .pix-header-status {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .pix-status-badge {
-            background: #f0fdf4;
-            color: #15803d;
-            padding: 6px 12px;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid #dcfce7;
-        }
-
-        .pix-timer-container {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-gray);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .pix-timer-container span {
-            color: var(--danger);
-        }
-
-        .duty-info-section {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 16px;
-        }
-
-        .duty-header {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: var(--text-light);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .duty-user-data {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .duty-field {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-        }
-
-        .duty-label {
-            color: var(--text-gray);
-            font-weight: 600;
-        }
-
-        .duty-value {
-            color: var(--text-dark);
-            font-weight: 700;
-        }
-
-        .duty-warning {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            gap: 8px;
-            font-size: 0.75rem;
-            color: var(--text-gray);
-            font-weight: 600;
-            line-height: 1.4;
-        }
-
-        .pix-code-display-wrapper {
-            background: #f1f5f9;
-            border: 1px dashed #cbd5e1;
-            border-radius: 14px;
-            padding: 14px;
-        }
-
-        .pix-code-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .pix-code-label {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: var(--text-light);
-            text-transform: uppercase;
-        }
-
-        .pix-code-value-label {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
-
-        .pix-code-input-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: white;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .pix-code-display-text {
-            flex: 1;
-            font-family: monospace;
-            font-size: 0.8rem;
-            color: #475569;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .pix-copy-icon-btn {
-            background: none;
-            border: none;
-            color: var(--primary);
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .btn-copy-pix {
-            background: #0f172a;
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 14px;
-            font-size: 1rem;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .waiting-payment-section {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 5px;
-        }
-
-        .modern-spinner {
-            width: 18px;
-            height: 18px;
-            border: 3px solid rgba(0, 85, 255, 0.1);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .waiting-text {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text-gray);
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .spinner {
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        /* Modal Styles */
-        .pix-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(12px);
-            z-index: 2000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-
-        .pix-modal-overlay.active {
-            display: flex;
-        }
-
-        .pix-modal-content {
-            background: white;
-            width: 100%;
-            max-width: 380px;
-            border-radius: 20px;
-            padding: 24px;
-            position: relative;
-            text-align: center;
-        }
-
-        .pix-modal-header i {
-            font-size: 2rem;
-            color: #22c55e;
-            margin-bottom: 8px;
-        }
-
-        .pix-modal-header h2 {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 4px;
-        }
-
-        .pix-instructions-list {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid #e2e8f0;
-            text-align: left;
-        }
-
-        .pix-instructions-list ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .pix-instructions-list li {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.8rem;
-            color: #475569;
-            font-weight: 600;
-        }
-
-        .pix-instructions-list li i {
-            color: #0055ff;
-            font-size: 0.9rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        .pix-code-container-compact {
-            background: #f1f5f9;
-            border-radius: 10px;
-            padding: 8px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px dashed #cbd5e1;
-        }
-
-        .pix-code-input-compact {
-            flex: 1;
-            background: transparent;
-            border: none;
-            font-family: monospace;
-            font-size: 0.75rem;
-            color: #64748b;
-            outline: none;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .pix-copy-btn-compact {
-            background: #0f172a;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .pix-modal-close-compact {
-            width: 100%;
-            background: #0055ff;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg-light); color: var(--text-dark); line-height: 1.6; scroll-behavior: smooth; }
+        body { min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 0; }
+        .container { width: 100%; max-width: 480px; background-color: var(--bg-white); box-shadow: var(--shadow-md); display: flex; flex-direction: column; }
+        .header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--bg-white); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .back-btn { background: rgba(255, 255, 255, 0.2); border: none; color: var(--bg-white); font-size: 1.1rem; cursor: pointer; padding: 8px 10px; border-radius: 6px; }
+        .brand-logo { font-size: 1.3rem; font-weight: 800; letter-spacing: -1px; }
+        .trust-banner { background: linear-gradient(90deg, rgba(40, 167, 69, 0.1) 0%, rgba(0, 191, 255, 0.1) 100%); border-bottom: 1px solid rgba(40, 167, 69, 0.2); padding: 10px 20px; display: flex; align-items: center; justify-content: space-around; font-size: 0.75rem; color: var(--text-gray); font-weight: 600; }
+        .trust-item { display: flex; align-items: center; gap: 6px; }
+        .trust-item i { color: var(--success); }
+        .payment-options-container { padding: 20px; }
+        .payment-option-card { border: 3px solid var(--primary); border-radius: 20px; padding: 24px; background: linear-gradient(135deg, rgba(0, 85, 255, 0.05) 0%, rgba(0, 85, 255, 0.02) 100%); box-shadow: 0 12px 32px rgba(0, 85, 255, 0.18); position: relative; }
+        .payment-option-icon { font-size: 1.8rem; color: var(--primary); margin-bottom: 4px; }
+        .payment-option-title { font-size: 1.1rem; font-weight: 800; }
+        .payment-option-price { font-size: 1.5rem; font-weight: 900; color: var(--primary); }
+        .pix-form-container { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0, 85, 255, 0.1); display: flex; flex-direction: column; gap: 12px; }
+        .pix-input-group { display: flex; flex-direction: column; gap: 5px; }
+        .pix-input-group label { font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; }
+        .pix-input-group input { padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.95rem; font-weight: 600; }
+        .pix-input-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px var(--primary-light); }
+        .payment-action-btn { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 1.05rem; font-weight: 800; cursor: pointer; margin-top: 10px; }
+        .pix-copy-section { display: none; flex-direction: column; gap: 18px; }
+        .pix-code-display-wrapper { background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 14px; }
+        .pix-code-input-container { display: flex; align-items: center; gap: 10px; background: white; padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .pix-code-display-text { flex: 1; font-family: monospace; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-copy-pix { background: #0f172a; color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; }
+        .spinner { width: 24px; height: 24px; border: 3px solid rgba(255, 255, 255, 0.3); border-top: 3px solid white; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .pix-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 16px; }
+        .pix-modal-overlay.active { display: flex; }
+        .pix-modal-content { background: white; width: 100%; max-width: 380px; border-radius: 20px; padding: 24px; text-align: center; }
+        .pix-error-msg { display: none; background: #fff1f0; border: 1px solid #ffa39e; padding: 10px; border-radius: 10px; color: var(--danger); font-size: 0.85rem; font-weight: 600; }
+        .pix-error-msg.visible { display: flex; }
     </style>
 </head>
 <body>
@@ -732,234 +85,119 @@
         <header class="header">
             <div class="header-left">
                 <button class="back-btn" onclick="history.back();"><i class="fas fa-arrow-left"></i></button>
-                <div class="brand-section">
-                    <div class="brand-logo">PAG-ONLINE</div>
-                    <div class="brand-tagline">Pagamento Seguro</div>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="search-btn"><i class="fas fa-search"></i></div>
-                <div class="cart-btn">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-badge">1</span>
-                </div>
+                <div class="brand-logo">PAG-ONLINE</div>
             </div>
         </header>
-
         <div class="trust-banner">
             <div class="trust-item"><i class="fas fa-lock"></i> 100% Seguro</div>
             <div class="trust-item"><i class="fas fa-check-circle"></i> Garantido</div>
         </div>
-
-        <main class="content-area">
-            <section class="review-block">
-                <div class="payment-options-container">
-                    <div class="payment-option-card selected" id="pay-now-pix">
-                        <div id="pix-original-content">
-                            <div class="payment-option-icon"><i class="fas fa-bolt"></i></div>
-                            <div class="payment-option-title">
-                                <span>Pagar Agora - Pix</span>
-                                <span style="background: #f0fdf4; color: #15803d; padding: 2px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; margin-left: 8px;">Promoção</span>
-                            </div>
-                            <div class="payment-option-price">R$ <span id="pix-amount-display">0,00</span></div>
-                            <div class="payment-option-desc">Liberação imediata, entrega prioritária e o melhor preço garantido.</div>
-                            
-                            <div class="pix-form-container" id="pix-form" style="display: flex;">
-                                <div class="pix-input-group">
-                                    <label for="pix-name">Nome e Sobrenome</label>
-                                    <input type="text" id="pix-name" placeholder="Ex: João Silva" required>
-                                </div>
-                                <div class="pix-input-group">
-                                    <label for="pix-cpf">CPF</label>
-                                    <input type="tel" id="pix-cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" required>
-                                </div>
-                                <div class="pix-input-group">
-                                    <label for="pix-phone">Telefone</label>
-                                    <input type="tel" id="pix-phone" placeholder="(00) 00000-0000" required>
-                                </div>
-                                <div class="pix-error-msg" id="pix-error-msg">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    <span id="pix-error-text">Erro ao gerar código PIX.</span>
-                                </div>
-                                <button class="payment-action-btn" id="btn-generate-pix" style="margin-top:10px;">
-                                    <span class="btn-text">Pagar R$ <span id="btn-amount-display">0,00</span> <i class="fas fa-check"></i></span>
-                                </button>
-                            </div>
+        <main class="payment-options-container">
+            <div class="payment-option-card">
+                <div id="pix-original-content">
+                    <div class="payment-option-icon"><i class="fas fa-bolt"></i></div>
+                    <div class="payment-option-title">Pagar Agora - Pix</div>
+                    <div class="payment-option-price">R$ <span id="pix-amount-display">0,00</span></div>
+                    <div class="pix-form-container">
+                        <div class="pix-input-group">
+                            <label>Nome Completo</label>
+                            <input type="text" id="pix-name" placeholder="Ex: João Silva" required>
                         </div>
-
-                        <div id="pix-copy-content" class="pix-copy-section">
-                            <div class="pix-header-status">
-                                <div class="pix-status-badge"><i class="fas fa-check-circle"></i> Código Gerado</div>
-                                <div class="pix-timer-container"><i class="fas fa-clock"></i> Expira em: <span id="pix-timer">15:00</span></div>
-                            </div>
-                            <div class="duty-info-section">
-                                <div class="duty-header"><i class="fas fa-user-shield"></i> Titular da Compra</div>
-                                <div class="duty-user-data">
-                                    <div class="duty-field"><span class="duty-label">Nome:</span><span class="duty-value" id="display-pix-name">---</span></div>
-                                    <div class="duty-field"><span class="duty-label">CPF:</span><span class="duty-value" id="display-pix-cpf">---</span></div>
-                                </div>
-                                <div class="duty-warning"><i class="fas fa-info-circle"></i><span>Este código Pix é nominal e vinculado ao seu CPF.</span></div>
-                            </div>
-                            <div class="pix-code-display-wrapper">
-                                <div class="pix-code-header">
-                                    <label class="pix-code-label">Código Pix</label>
-                                    <span class="pix-code-value-label">R$ <span id="copy-amount-display">0,00</span></span>
-                                </div>
-                                <div class="pix-code-input-container">
-                                    <span class="pix-code-display-text" id="pix-code-text">Aguardando código...</span>
-                                    <button class="pix-copy-icon-btn" id="btn-copy-pix-quick" title="Copiar código"><i class="fas fa-copy"></i></button>
-                                </div>
-                            </div>
-                            <button class="btn-copy-pix" id="btn-copy-pix-action">Copiar código</button>
-                            <div class="waiting-payment-section"><div class="modern-spinner"></div><div class="waiting-text">Aguardando Pagamento</div></div>
-                            <button class="pix-modal-close-compact" id="btn-already-paid" style="margin-top: 10px;">Já realizei o pagamento</button>
+                        <div class="pix-input-group">
+                            <label>E-mail</label>
+                            <input type="email" id="pix-email" placeholder="seu@email.com" required>
                         </div>
+                        <div class="pix-input-group">
+                            <label>CPF</label>
+                            <input type="tel" id="pix-cpf" placeholder="000.000.000-00" maxlength="14" required>
+                        </div>
+                        <div class="pix-input-group">
+                            <label>Telefone</label>
+                            <input type="tel" id="pix-phone" placeholder="(00) 00000-0000" required>
+                        </div>
+                        <div class="pix-error-msg" id="pix-error-msg">
+                            <span id="pix-error-text">Erro ao gerar PIX.</span>
+                        </div>
+                        <button class="payment-action-btn" id="btn-generate-pix">
+                            Pagar R$ <span id="btn-amount-display">0,00</span>
+                        </button>
                     </div>
                 </div>
-            </section>
+                <div id="pix-copy-content" class="pix-copy-section">
+                    <div class="pix-code-display-wrapper">
+                        <div class="pix-code-input-container">
+                            <span class="pix-code-display-text" id="pix-code-text">Aguardando código...</span>
+                        </div>
+                    </div>
+                    <button class="btn-copy-pix" id="btn-copy-pix-action">Copiar código Pix</button>
+                    <p style="text-align:center; font-size:0.8rem; margin-top:10px; color:var(--text-gray);">Aguardando pagamento...</p>
+                </div>
+            </div>
         </main>
-
-        <footer class="footer">
-            <p>&copy; 2024 PAG-ONLINE. Todos os direitos reservados.</p>
-        </footer>
     </div>
 
-    <!-- Modal Pix Copiado -->
     <div id="pixCopiedModal" class="pix-modal-overlay">
         <div class="pix-modal-content">
-            <div class="pix-modal-header">
-                <i class="fas fa-check-circle"></i>
-                <h2>Código Pix Copiado!</h2>
-                <p>Agora siga as instruções abaixo para concluir o pagamento</p>
-            </div>
-            <div class="pix-instructions-list">
-                <ul>
-                    <li><i class="fas fa-mobile-alt"></i><span>Acesse o App do seu banco.</span></li>
-                    <li><i class="fas fa-qrcode"></i><span>Selecione "Pix Copia e Cola".</span></li>
-                    <li><i class="fas fa-paste"></i><span>Cole o código e finalize.</span></li>
-                </ul>
-            </div>
-            <div class="pix-code-container-compact">
-                <input type="text" id="pixCodeCopied" class="pix-code-input-compact" readonly>
-                <button class="pix-copy-btn-compact" onclick="copyAgain()">Copiar</button>
-            </div>
-            <button class="pix-modal-close-compact" onclick="closePixModal()">ENTENDI, VOU PAGAR</button>
+            <i class="fas fa-check-circle" style="font-size:2rem; color:var(--success);"></i>
+            <h2 style="margin:10px 0;">Código Copiado!</h2>
+            <p>Cole o código no app do seu banco para pagar.</p>
+            <button class="btn-copy-pix" style="width:100%; margin-top:20px;" onclick="document.getElementById('pixCopiedModal').classList.remove('active')">Entendi</button>
         </div>
     </div>
 
     <script>
-        function getUrlParameter(name) {
-            const params = new URLSearchParams(window.location.search);
-            return params.get(name);
-        }
+        const subtotal = new URLSearchParams(window.location.search).get('subtotal') || '89.47';
+        const formatted = parseFloat(subtotal).toFixed(2).replace('.', ',');
+        document.getElementById('pix-amount-display').textContent = formatted;
+        document.getElementById('btn-amount-display').textContent = formatted;
 
-        const subtotalFromUrl = getUrlParameter('subtotal');
-        const subtotalValue = subtotalFromUrl ? parseFloat(subtotalFromUrl) : 89.47;
-
-        // Atualiza valores na tela
-        const formattedValue = subtotalValue.toFixed(2).replace('.', ',');
-        document.getElementById('pix-amount-display').textContent = formattedValue;
-        document.getElementById('btn-amount-display').textContent = formattedValue;
-        document.getElementById('copy-amount-display').textContent = formattedValue;
-
-        let timerInterval;
-
-        function maskCPF(value) {
-            return value.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})/, '$1-$2').replace(/(-\d{2})\d+?$/, '$1');
-        }
-
-        function maskPhone(value) {
-            return value.replace(/\D/g, '').replace(/^(\d{2})(\d)/g, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2').replace(/(-\d{4})\d+?$/, '$1');
-        }
-
-        document.getElementById('pix-cpf').addEventListener('input', (e) => e.target.value = maskCPF(e.target.value));
-        document.getElementById('pix-phone').addEventListener('input', (e) => e.target.value = maskPhone(e.target.value));
+        function maskCPF(v) { return v.replace(/\D/g,'').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})/,'$1-$2').replace(/(-\d{2})\d+?$/,'$1'); }
+        function maskPhone(v) { return v.replace(/\D/g,'').replace(/^(\d{2})(\d)/g,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2').replace(/(-\d{4})\d+?$/,'$1'); }
+        document.getElementById('pix-cpf').addEventListener('input', e => e.target.value = maskCPF(e.target.value));
+        document.getElementById('pix-phone').addEventListener('input', e => e.target.value = maskPhone(e.target.value));
 
         document.getElementById('btn-generate-pix').addEventListener('click', async () => {
-            const name = document.getElementById('pix-name').value.trim();
-            const cpfRaw = document.getElementById('pix-cpf').value;
-            const phone = document.getElementById('pix-phone').value.trim();
-            const cpf = cpfRaw.replace(/\D/g, '');
+            const name = document.getElementById('pix-name').value;
+            const email = document.getElementById('pix-email').value;
+            const cpf = document.getElementById('pix-cpf').value.replace(/\D/g,'');
+            const phone = document.getElementById('pix-phone').value.replace(/\D/g,'');
             const errorEl = document.getElementById('pix-error-msg');
-            const errorText = document.getElementById('pix-error-text');
-            
-            errorEl.classList.remove('visible');
 
-            if (name.split(' ').length < 2) { errorText.textContent = 'Informe seu nome completo.'; errorEl.classList.add('visible'); return; }
-            if (cpf.length !== 11) { errorText.textContent = 'Informe um CPF válido.'; errorEl.classList.add('visible'); return; }
+            if (!name || !email || cpf.length !== 11 || phone.length < 10) {
+                alert('Preencha todos os dados corretamente.'); return;
+            }
 
             const btn = document.getElementById('btn-generate-pix');
-            btn.innerHTML = '<div class="spinner" style="margin: 0 auto;"></div>';
+            btn.innerHTML = '<div class="spinner"></div>';
             btn.disabled = true;
 
             try {
-                const response = await fetch('/api/pix', {
+                const res = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        payer_name: name,
-                        payer_document: cpf,
-                        payer_phone: phone,
-                        amount: subtotalValue
-                    })
+                    body: JSON.stringify({ payer_name: name, payer_email: email, payer_document: cpf, payer_phone: phone, amount: subtotal })
                 });
-
-                const data = await response.json();
-
+                const data = await res.json();
                 if (data.success) {
-                    showPixCopySection(data.pixCode, name, cpfRaw);
+                    document.getElementById('pix-original-content').style.display = 'none';
+                    document.getElementById('pix-copy-content').style.display = 'flex';
+                    document.getElementById('pix-code-text').textContent = data.pixCode;
                 } else {
-                    throw new Error(data.error);
+                    document.getElementById('pix-error-text').textContent = data.error;
+                    errorEl.classList.add('visible');
+                    btn.innerHTML = `Pagar R$ ${formatted}`;
+                    btn.disabled = false;
                 }
-            } catch (err) {
-                errorText.textContent = 'Erro ao gerar PIX. Tente novamente.';
-                errorEl.classList.add('visible');
-                btn.innerHTML = `Pagar R$ ${formattedValue} <i class="fas fa-check"></i>`;
+            } catch (e) {
+                alert('Erro de conexão.');
+                btn.innerHTML = `Pagar R$ ${formatted}`;
                 btn.disabled = false;
             }
         });
 
-        function showPixCopySection(qrCode, name, cpf) {
-            document.getElementById('pix-original-content').style.display = 'none';
-            document.getElementById('pix-copy-content').style.display = 'flex';
-            document.getElementById('display-pix-name').innerText = name;
-            document.getElementById('display-pix-cpf').innerText = cpf;
-            document.getElementById('pix-code-text').innerText = qrCode;
-            document.getElementById('pixCodeCopied').value = qrCode;
-            startPixTimer(900);
-        }
-
-        function startPixTimer(duration) {
-            let timer = duration, minutes, seconds;
-            timerInterval = setInterval(() => {
-                minutes = parseInt(timer / 60, 10);
-                seconds = parseInt(timer % 60, 10);
-                document.getElementById('pix-timer').textContent = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-                if (--timer < 0) clearInterval(timerInterval);
-            }, 1000);
-        }
-
-        document.getElementById('btn-copy-pix-action').addEventListener('click', copyPix);
-        document.getElementById('btn-copy-pix-quick').addEventListener('click', copyPix);
-
-        function copyPix() {
-            const code = document.getElementById('pix-code-text').innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                document.getElementById('pixCopiedModal').classList.add('active');
-            });
-        }
-
-        function copyAgain() {
-            const code = document.getElementById('pixCodeCopied').value;
-            navigator.clipboard.writeText(code);
-        }
-
-        function closePixModal() {
-            document.getElementById('pixCopiedModal').classList.remove('active');
-        }
-
-        document.getElementById('btn-already-paid').addEventListener('click', () => {
-            window.location.href = 'https://www.google.com';
+        document.getElementById('btn-copy-pix-action').addEventListener('click', () => {
+            navigator.clipboard.writeText(document.getElementById('pix-code-text').textContent);
+            document.getElementById('pixCopiedModal').classList.add('active');
         });
     </script>
 </body>
